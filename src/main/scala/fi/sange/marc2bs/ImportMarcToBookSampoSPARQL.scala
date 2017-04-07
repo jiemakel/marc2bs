@@ -248,7 +248,7 @@ object ImportMarcToBookSampoSPARQL extends Logging {
       }).foldLeft(Map[String, String]().empty) { (r, c) => r ++ c }
     } else Map.empty
 
-    val publishers = getField("260", 'b').map(fix).flatMap(plabel => {
+    val publishers = getField("264", 'b').map(fix).flatMap(plabel => {
       val mac = bse.getMatchingPublishers(plabel, descLang).map(PointedGraph[Rdf])
 
       if (!mac.isEmpty) mac else
@@ -258,7 +258,7 @@ object ImportMarcToBookSampoSPARQL extends Logging {
           -- skos.altLabel ->- altPublisherLabelMap.get(plabel)))
     })
 
-    val publTimes = getField("260", 'c').map(fix).flatMap(tlabel => {
+    val publTimes = getField("264", 'c').map(fix).flatMap(tlabel => {
       val mac = bse.getMatchingTimes(tlabel, descLang).map(PointedGraph[Rdf])
 
       if (!mac.isEmpty) mac else

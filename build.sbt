@@ -5,6 +5,8 @@ organization := "fi.sange"
 
 version := "0.1.0-SNAPSHOT"
 
+mainClass := Some("fi.sange.marc2bs.ImportMarcToBookSampoSPARQL")
+
 // description := "this project can foo a bar!"
 
 homepage := Some(url("https://github.com/jiemakel/marc2bs"))
@@ -200,35 +202,3 @@ pomExtra := (
     </developer>
   </developers>
 )
-
-/* entry point */
-mainClass in (Compile, packageBin) := Some("fi.sange.marc2bs.ImportMarcToBookSampoSPARQL")
-
-mainClass in (Compile, run) := Some("fi.sange.marc2bs.ImportMarcToBookSampoSPARQL")
-
-mainClass in (Compile,run) := Some("fi.sange.marc2bs.ImportMarcToBookSampoSPARQL")
-
-// Josh Suereth's step-by-step guide to publishing on sonatype
-// http://www.scala-sbt.org/using_sonatype.html
-
-/* assembly plugin */
-mainClass in AssemblyKeys.assembly := Some("fi.sange.marc2bs.ImportMarcToBookSampoSPARQL")
-
-assemblySettings
-
-test in AssemblyKeys.assembly := {}
-
-initialCommands in console := "import scalaz._, Scalaz._"
-
-// sbt-revolver plugin
-seq(Revolver.settings: _*)
-
-// sbt-dependecy-graph plugin
-net.virtualvoid.sbt.graph.Plugin.graphSettings
-
-// sbt-eclipse plugin
-EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource
-
-EclipseKeys.withSource := true
-
-unmanagedSourceDirectories in Compile := (scalaSource in Compile).value :: Nil
