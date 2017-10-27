@@ -77,8 +77,8 @@ object ImportMarcToBookSampoSPARQL extends Logging {
     if (blacklist.exists(entry => f.getAbsolutePath().startsWith(entry)) || new File(f.getAbsolutePath() + ".processed").exists) Seq() else if (f.isDirectory) f.listFiles flatMap filesAt(blacklist) else Seq(f)
   }
 
-  def getField(field: String, subfield: Char)(implicit record: Record): Seq[String] = {
-    record.getVariableFields(field).map(field => field.asInstanceOf[DataField].getSubfields(subfield)).flatten.map(subfield => subfield.getData.normalize.trim)
+  def getField(field: String, subfield: Char, ind1: Option[Char] = None, ind2: Option[Char] = None)(implicit record: Record): Seq[String] = {
+    record.getVariableFields(field).filter(field => ind1.forall(field.asInstanceOf[DataField].getIndicator1==_) && ind2.forall(field.asInstanceOf[DataField].getIndicator2==_)).map(field => field.asInstanceOf[DataField].getSubfields(subfield)).flatten.map(subfield => subfield.getData.normalize.trim)
   }
 
   def filterRecord(record: Record)(implicit params: Params): Boolean = {
@@ -248,7 +248,7 @@ object ImportMarcToBookSampoSPARQL extends Logging {
       }).foldLeft(Map[String, String]().empty) { (r, c) => r ++ c }
     } else Map.empty
 
-    val publishers = getField("264", 'b').map(fix).flatMap(plabel => {
+    val publishers = getField("264", 'b', None, Some('1')).map(fix).flatMap(plabel => {
       val mac = bse.getMatchingPublishers(plabel, descLang).map(PointedGraph[Rdf])
 
       if (!mac.isEmpty) mac else
@@ -260,7 +260,6 @@ object ImportMarcToBookSampoSPARQL extends Logging {
 
     val publTimes = getField("264", 'c').map(fix).flatMap(tlabel => {
       val mac = bse.getMatchingTimes(tlabel, descLang).map(PointedGraph[Rdf])
-
       if (!mac.isEmpty) mac else
         Some((URI("http://data.kirjasampo.fi/time_" + URLEncoder.encode(tlabel + '_' + descLang, "UTF-8")).toPG.a(bs.time_type)
           -- bs.datasource ->- params.datasourceIRI
@@ -337,7 +336,7 @@ object ImportMarcToBookSampoSPARQL extends Logging {
 
     val subWorkMap = if (r.getVariableField("700") != null) r.getVariableFields("700").map(_.asInstanceOf[DataField])
       .filter(df => (df.getIndicator1() === '1' && df.getIndicator2() === '2' && df.getSubfield('t') != null))
-      .map(df => (df.getSubfield('t').getData.normalize, (fix(df.getSubfield('a').getData.normalize), if (df.getSubfield('e') != null) Some(df.getSubfield('e').getData.normalize.trim.toLowerCase) else None)))
+      .map(df => (fix(df.getSubfield('t').getData.normalize), (fix(df.getSubfield('a').getData.normalize), if (df.getSubfield('e') != null) Some(df.getSubfield('e').getData.normalize.trim.toLowerCase) else None)))
       .groupBy(_._1).mapValues(_.map(_._2))
     else Map[String, Seq[(String, Option[String])]]().empty
 
